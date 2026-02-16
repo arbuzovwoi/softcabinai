@@ -3,22 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoftCabinAI</title>
+    <title>SoftCabinAI Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        button { background: #2481cc; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 10px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .info {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: var(--tg-theme-hint-color, #999);
+        }
     </style>
 </head>
 <body>
     <h1>SoftCabinAI</h1>
-    <button onclick="sendData()">Отправить данные боту</button>
+    <div class="info" id="userInfo">Загрузка данных...</div>
+    
+    <button onclick="sendBalance()">💰 Показать баланс</button>
+    <button onclick="sendAction('get_tokens')">💎 Получить токены</button>
+    <button onclick="closeApp()">❌ Закрыть</button>
+
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();
-        function sendData() {
-            tg.sendData(JSON.stringify({ action: 'hello', user: tg.initDataUnsafe?.user?.id }));
+        tg.expand(); // развернуть на весь экран
+        tg.ready();  // сообщить Telegram, что приложение готово
+
+        // Получаем данные о пользователе из Telegram
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('userInfo').innerHTML = 
+                `👤 <b>${user.first_name}</b> ${user.last_name || ''}<br>` +
+                `🆔 ${user.id}<br>` +
+                `🌐 ${user.language_code || 'ru'}`;
+        } else {
+            document.getElementById('userInfo').innerHTML = 'Данные пользователя не доступны';
         }
+
+        // Отправка данных боту через sendData
+        function sendBalance() {
+            tg.sendData(JSON.stringify({
+                action: 'check_balance',
+                user_id: user?.id
+            }));
+            tg.close(); // можно сразу закрыть приложение после отправки
+        }
+
+        function sendAction(action) {
+            tg.sendData(JSON.stringify({
+                action: action,
+                user_id: user?.id
+            }));
+            tg.close();
+        }
+
+        function closeApp() {
+            tg.close();
+        }
+
+        // Настройка основной кнопки (опционально)
+        tg.MainButton.setText("Готово");
+        tg.MainButton.onClick(() => {
+            tg.sendData(JSON.stringify({ action: 'done' }));
+            tg.close();
+        });
+        tg.MainButton.show();
     </script>
 </body>
 </html>
