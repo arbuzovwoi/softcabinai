@@ -6,53 +6,18 @@
     <title>SoftCabinAI Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        button {
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
-            width: 100%;
-            max-width: 300px;
-        }
-        .info {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            color: var(--tg-theme-hint-color, #999);
-            text-align: left;
-        }
-        #status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            background: var(--tg-theme-bg-color, #ffffff);
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
-            display: none;
-        }
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        button { background: #2481cc; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 10px; width: 80%; }
+        .status { margin-top: 20px; color: green; }
+        .error { color: red; }
     </style>
 </head>
 <body>
     <h1>SoftCabinAI</h1>
-    <div class="info" id="userInfo">Загрузка данных...</div>
-    
-    <button onclick="sendCommand('check_balance')">💰 Проверить баланс</button>
-    <button onclick="sendCommand('add_tokens', 1000)">💎 Получить 1000 токенов</button>
-    <button onclick="sendCommand('add_tokens', 5000)">💎 Получить 5000 токенов</button>
+    <div id="userInfo">Загрузка...</div>
+    <button onclick="sendBalance()">💰 Проверить баланс</button>
+    <button onclick="sendAddTokens()">💎 Получить 1000 токенов</button>
     <button onclick="closeApp()">❌ Закрыть</button>
-
     <div id="status"></div>
 
     <script>
@@ -63,36 +28,36 @@
         const user = tg.initDataUnsafe?.user;
         if (user) {
             document.getElementById('userInfo').innerHTML = 
-                `👤 <b>${user.first_name} ${user.last_name || ''}</b><br>` +
-                `🆔 ${user.id}<br>` +
-                `🌐 Язык: ${user.language_code || 'ru'}`;
+                `👤 ${user.first_name} (ID: ${user.id})`;
         } else {
-            document.getElementById('userInfo').innerHTML = '⚠️ Данные пользователя не доступны (возможно, тестовый режим).';
+            document.getElementById('userInfo').innerHTML = '⚠️ Данные пользователя не доступны';
         }
 
-        function setStatus(text, isError = false) {
+        function showStatus(text, isError = false) {
             const statusDiv = document.getElementById('status');
-            statusDiv.style.display = 'block';
-            statusDiv.style.background = isError ? '#ffdddd' : '#e0ffe0';
-            statusDiv.innerText = text;
+            statusDiv.innerHTML = text;
+            statusDiv.className = isError ? 'error' : 'status';
         }
 
-        function sendCommand(action, amount = null) {
-            let data = { action: action };
-            if (amount !== null) {
-                data.amount = amount;
-            }
-            const jsonData = JSON.stringify(data);
-            setStatus('Отправка: ' + jsonData);
+        function sendBalance() {
             try {
-                tg.sendData(jsonData);
-                setStatus('Отправлено! Ждите ответа в чате...');
-                // Не закрываем сразу, дадим время на отправку
-                setTimeout(() => {
-                    tg.close();
-                }, 1000);
+                const data = JSON.stringify({ action: 'check_balance' });
+                tg.sendData(data);
+                showStatus('✅ Данные отправлены (check_balance)');
+                tg.close();
             } catch (e) {
-                setStatus('Ошибка отправки: ' + e.message, true);
+                showStatus('❌ Ошибка: ' + e.message, true);
+            }
+        }
+
+        function sendAddTokens() {
+            try {
+                const data = JSON.stringify({ action: 'add_tokens', amount: 1000 });
+                tg.sendData(data);
+                showStatus('✅ Данные отправлены (add_tokens)');
+                tg.close();
+            } catch (e) {
+                showStatus('❌ Ошибка: ' + e.message, true);
             }
         }
 
