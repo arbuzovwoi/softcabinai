@@ -34,6 +34,14 @@
             color: var(--tg-theme-hint-color, #999);
             text-align: left;
         }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -45,12 +53,13 @@
     <button onclick="sendCommand('add_tokens', 5000)">💎 Получить 5000 токенов</button>
     <button onclick="closeApp()">❌ Закрыть</button>
 
+    <div id="status"></div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // Получаем данные о пользователе
         const user = tg.initDataUnsafe?.user;
         if (user) {
             document.getElementById('userInfo').innerHTML = 
@@ -61,14 +70,30 @@
             document.getElementById('userInfo').innerHTML = '⚠️ Данные пользователя не доступны (возможно, тестовый режим).';
         }
 
-        // Функция отправки команды
+        function setStatus(text, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = isError ? '#ffdddd' : '#e0ffe0';
+            statusDiv.innerText = text;
+        }
+
         function sendCommand(action, amount = null) {
             let data = { action: action };
             if (amount !== null) {
                 data.amount = amount;
             }
-            tg.sendData(JSON.stringify(data));
-            tg.close(); // закрываем после отправки
+            const jsonData = JSON.stringify(data);
+            setStatus('Отправка: ' + jsonData);
+            try {
+                tg.sendData(jsonData);
+                setStatus('Отправлено! Ждите ответа в чате...');
+                // Не закрываем сразу, дадим время на отправку
+                setTimeout(() => {
+                    tg.close();
+                }, 1000);
+            } catch (e) {
+                setStatus('Ошибка отправки: ' + e.message, true);
+            }
         }
 
         function closeApp() {
