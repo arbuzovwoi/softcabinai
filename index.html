@@ -2,106 +2,88 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoftCabinAI Mini App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SoftCabinAI — ваш ИИ‑помощник</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
+
+        :root {
+            --bg: #0a0c12;
+            --glass: rgba(20, 30, 45, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #4285f4;
+            --text: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+        }
+
         body {
-            background: #0f0f0f;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #e0e0e0;
-        }
-        /* Основной контейнер с плавающим градиентом */
-        .app {
-            width: 100%;
-            max-width: 400px;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text);
             height: 100vh;
-            position: relative;
-            background: #1a1a1a;
-            overflow: hidden;
-            border-radius: 0;
-        }
-        /* Плавающая градиентная полоска */
-        .floating-gradient {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120%;
-            height: 300px;
-            background: linear-gradient(45deg, #00bcd4, #9c27b0, #ff4081);
-            filter: blur(60px);
-            opacity: 0.6;
-            transform: translate(-50%, -50%);
-            animation: float 8s infinite ease-in-out;
-            pointer-events: none;
-            z-index: 0;
-        }
-        @keyframes float {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            33% { transform: translate(-50%, -50%) rotate(120deg); }
-            66% { transform: translate(-50%, -50%) rotate(240deg); }
-        }
-        /* Контент поверх градиента */
-        .content {
-            position: relative;
-            z-index: 2;
-            height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 20px;
         }
-        /* Шапка с логотипом и меню */
+
+        /* Градиентный фон */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, #4285f4 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, #9c27b0 0%, transparent 50%),
+                        #0a0c12;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        /* Шапка */
         .header {
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
         }
+
         .logo {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 600;
-            background: linear-gradient(135deg, #00bcd4, #9c27b0);
+            background: linear-gradient(135deg, #4285f4, #9c27b0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
+
         .menu-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
         }
         .menu-btn span {
-            width: 30px;
-            height: 3px;
-            background: #fff;
+            width: 22px;
+            height: 2px;
+            background: white;
             margin: 3px 0;
-            transition: 0.4s;
-            border-radius: 2px;
+            transition: 0.3s;
         }
-        .menu-btn.active span:nth-child(1) {
-            transform: rotate(45deg) translate(6px, 6px);
-        }
-        .menu-btn.active span:nth-child(2) {
-            opacity: 0;
-        }
-        .menu-btn.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(7px, -7px);
-        }
+        .menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(4px,4px); }
+        .menu-btn.active span:nth-child(2) { opacity: 0; }
+        .menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(6px,-6px); }
+
         /* Боковое меню */
         .sidebar {
             position: fixed;
@@ -109,132 +91,200 @@
             left: -300px;
             width: 280px;
             height: 100vh;
-            background: rgba(30, 30, 30, 0.98);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(10, 15, 25, 0.95);
+            backdrop-filter: blur(20px);
+            transition: left 0.3s;
             padding: 20px;
             border-right: 1px solid rgba(255,255,255,0.1);
-            overflow-y: auto;
+            z-index: 100;
         }
-        .sidebar.open {
-            left: 0;
-        }
+        .sidebar.open { left: 0; }
         .sidebar-item {
-            padding: 15px;
-            margin: 5px 0;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.05);
+            padding: 16px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
             cursor: pointer;
-            transition: 0.3s;
-            font-size: 16px;
         }
-        .sidebar-item:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .sidebar-item:active {
-            transform: scale(0.98);
-        }
-        /* Основная область */
-        .main {
+
+        /* Основной контент — скроллится */
+        .content {
             flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            gap: 20px;
         }
-        .ai-badge {
-            font-size: 48px;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 20px rgba(0,188,212,0.5));
+
+        /* Карточки */
+        .card {
+            background: rgba(20, 30, 45, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        /* Строка ввода с liquid glass */
-        .input-container {
+        .card h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #4285f4, #9c27b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card p {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+        }
+        .stat {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat .number {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #4285f4, #9c27b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .feature {
+            flex: 1 1 40%;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 18px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .feature span {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .image-placeholder {
             width: 100%;
-            margin-top: 20px;
+            height: 160px;
+            background: linear-gradient(45deg, #4285f4, #9c27b0);
+            border-radius: 28px;
+            opacity: 0.8;
+        }
+
+        /* Нижняя панель с полем ввода */
+        .input-section {
+            padding: 10px 20px 20px 20px;
+            background: transparent;
+        }
+        .input-wrapper {
+            position: relative;
+            width: 100%;
         }
         .glass-input {
             width: 100%;
-            padding: 18px 20px;
+            padding: 18px 70px 18px 22px;
             border: none;
-            border-radius: 40px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px);
-            color: #fff;
+            border-radius: 60px;
+            background: rgba(20, 30, 45, 0.7);
+            backdrop-filter: blur(15px);
+            color: white;
             font-size: 16px;
-            outline: none;
-            transition: 0.3s;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer;
-        }
-        .glass-input::placeholder {
-            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
         }
         .glass-input:focus {
-            background: rgba(255,255,255,0.15);
-            box-shadow: 0 8px 32px rgba(0,188,212,0.2);
+            outline: none;
+            border-color: #4285f4;
         }
-        /* Три кнопки снизу с эффектом волны */
-        .action-buttons {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            gap: 10px;
+        .glass-input::placeholder {
+            color: rgba(255,255,255,0.4);
         }
-        .action-btn {
-            flex: 1;
-            padding: 14px 0;
-            border-radius: 30px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-            text-align: center;
-        }
-        .action-btn::after {
-            content: '';
+        .send-btn {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
+            right: 8px;
+            top: 8px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.4);
-            transform: translate(-50%, -50%);
-            transition: width 0.3s, height 0.3s;
-        }
-        .action-btn:active::after {
-            width: 200px;
-            height: 200px;
+            background: linear-gradient(135deg, #4285f4, #9c27b0);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             opacity: 0;
-            transition: 0s;
+            transform: scale(0.5);
+            transition: 0.2s;
+            pointer-events: none;
         }
-        .action-btn:hover {
-            background: rgba(255,255,255,0.2);
+        .glass-input:not(:placeholder-shown) + .send-btn {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
         }
-        /* Информационные модальные окна */
+        .send-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+        .cost-preview {
+            position: absolute;
+            right: 70px;
+            top: 18px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .glass-input:not(:placeholder-shown) ~ .cost-preview {
+            opacity: 1;
+        }
+
+        /* Ссылка внизу */
+        .footer-link {
+            display: block;
+            text-align: center;
+            padding: 16px;
+            color: #4285f4;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 500;
+            background: rgba(66,133,244,0.1);
+            border-radius: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(66,133,244,0.3);
+            margin-top: 20px;
+        }
+
+        /* Модалки (коротко) */
         .modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
-            z-index: 200;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s;
+            transition: 0.3s;
+            z-index: 200;
         }
         .modal.show {
             opacity: 1;
@@ -243,162 +293,148 @@
         .modal-content {
             width: 90%;
             max-width: 340px;
-            background: rgba(30,30,30,0.95);
-            border-radius: 24px;
+            background: rgba(20,30,45,0.9);
+            border-radius: 30px;
             padding: 24px;
-            color: #fff;
             border: 1px solid rgba(255,255,255,0.1);
-            transform: scale(0.9);
-            transition: transform 0.3s;
-        }
-        .modal.show .modal-content {
-            transform: scale(1);
-        }
-        .modal-content h2 {
-            margin-bottom: 16px;
-            font-size: 20px;
-            background: linear-gradient(135deg, #00bcd4, #9c27b0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .modal-content p {
-            line-height: 1.5;
-            font-size: 14px;
-            color: #ccc;
         }
         .modal-close {
-            margin-top: 20px;
             text-align: right;
+            margin-top: 20px;
         }
         .modal-close button {
             background: none;
-            border: none;
-            color: #00bcd4;
-            font-size: 16px;
+            border: 1px solid #4285f4;
+            color: #4285f4;
+            padding: 8px 24px;
+            border-radius: 30px;
             cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: 0.3s;
-        }
-        .modal-close button:hover {
-            background: rgba(0,188,212,0.1);
         }
     </style>
 </head>
 <body>
-    <div class="app">
-        <div class="floating-gradient"></div>
-        <div class="content">
-            <div class="header">
-                <div class="logo">SoftCabinAI</div>
-                <div class="menu-btn" id="menuBtn">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-            <div class="main">
-                <div class="ai-badge">✨</div>
-                <div class="input-container">
-                    <input type="text" class="glass-input" placeholder="Чтобы написать ИИ, зайдите в бота" readonly onclick="openBot()">
-                </div>
-                <div class="action-buttons">
-                    <div class="action-btn" onclick="sendAction('check_balance')">Баланс</div>
-                    <div class="action-btn" onclick="sendAction('bonus')">Бонус</div>
-                    <div class="action-btn" onclick="openModelInfo()">Модель ИИ</div>
-                </div>
-            </div>
+    <div class="bg-gradient"></div>
+
+    <div class="header">
+        <div class="logo">SoftCabinAI</div>
+        <div class="menu-btn" id="menuBtn">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <div class="content" id="content">
+        <div class="card">
+            <h2>Добро пожаловать!</h2>
+            <p>Персональный ИИ‑помощник, который всегда рядом. Спрашивай, проси, твори.</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><span class="number">10K</span><br>токенов</div>
+            <div class="stat"><span class="number">10</span><br>запросов/день</div>
+            <div class="stat"><span class="number">+6</span><br>от рефералов</div>
+        </div>
+
+        <div class="image-placeholder"></div>
+
+        <div class="features">
+            <div class="feature"><span>🔮</span>GPT‑4 Turbo</div>
+            <div class="feature"><span>🎨</span>Дизайн</div>
+            <div class="feature"><span>📊</span>Анализ</div>
+            <div class="feature"><span>💡</span>Стартапы</div>
+        </div>
+
+        <a href="https://t.me/softcabinai_bot" class="footer-link" target="_blank">@softcabinai_bot</a>
+    </div>
+
+    <div class="input-section">
+        <div class="input-wrapper">
+            <input type="text" class="glass-input" id="messageInput" placeholder="Задайте вопрос...">
+            <button class="send-btn" id="sendBtn">
+                <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
+            </button>
+            <div class="cost-preview" id="costPreview"></div>
         </div>
     </div>
 
     <!-- Боковое меню -->
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-item" onclick="sendPrompt('Создай красивый дизайн кнопки на HTML')">🎨 Дизайн кнопки</div>
+        <div class="sidebar-item" onclick="sendPrompt('Создай красивый дизайн кнопки')">🎨 Дизайн кнопки</div>
         <div class="sidebar-item" onclick="sendPrompt('Сколько дней в году?')">📅 Дней в году</div>
-        <div class="sidebar-item" onclick="sendPrompt('Напиши код для калькулятора на JavaScript')">💻 Калькулятор</div>
-        <div class="sidebar-item" onclick="sendPrompt('Что такое искусственный интеллект?')">🧠 Что такое ИИ?</div>
-        <div class="sidebar-item" onclick="sendPrompt('Придумай идею для стартапа')">💡 Идея стартапа</div>
-        <div class="sidebar-item" onclick="showInfo('tokens')">💎 Как используются токены?</div>
-        <div class="sidebar-item" onclick="showInfo('requests')">📨 Что такое запросы?</div>
-        <div class="sidebar-item" onclick="showInfo('referrals')">👥 Что такое рефералы?</div>
-        <div class="sidebar-item" onclick="window.open('https://t.me/softcabinai', '_blank')">📢 Наш канал</div>
+        <div class="sidebar-item" onclick="sendPrompt('Напиши калькулятор на JS')">💻 Калькулятор</div>
+        <div class="sidebar-item" onclick="sendPrompt('Что такое ИИ?')">🧠 Что такое ИИ?</div>
+        <div class="sidebar-item" onclick="sendPrompt('Идея стартапа')">💡 Идея стартапа</div>
+        <div class="sidebar-item" onclick="showInfo('tokens')">💎 Токены</div>
+        <div class="sidebar-item" onclick="showInfo('requests')">📨 Запросы</div>
+        <div class="sidebar-item" onclick="showInfo('referrals')">👥 Рефералы</div>
+        <div class="sidebar-item" onclick="window.open('https://t.me/softcabinai')">📢 Канал</div>
     </div>
 
-    <!-- Модальные окна для информации -->
-    <div class="modal" id="modalTokens">
-        <div class="modal-content">
-            <h2>Токены</h2>
-            <p>Токены — главная валюта для общения с ИИ. Бесплатно выдаётся максимум 10 000 токенов, каждый день по 2000. После получения 10 000 бесплатных токенов бонус прекращается, но их можно купить. Токены тратятся на каждое сообщение: чем длиннее ответ ИИ, тем больше токенов уходит. В одном чате стоимость растёт из-за истории. Чтобы избежать этого, создайте новый чат. Старые чаты доступны через кнопку «Чаты». Следите за скидками в нашем канале!</p>
-            <div class="modal-close"><button onclick="closeModal('tokens')">Закрыть</button></div>
-        </div>
-    </div>
-    <div class="modal" id="modalRequests">
-        <div class="modal-content">
-            <h2>Запросы</h2>
-            <p>Запросы — это количество сообщений, которые вы можете отправить боту в день. По умолчанию 10 запросов, обновляются каждый день. Каждое отправленное сообщение (текст, фото, голос) тратит 1 запрос. Запросы можно купить в магазине или получить до 6 дополнительных от рефералов.</p>
-            <div class="modal-close"><button onclick="closeModal('requests')">Закрыть</button></div>
-        </div>
-    </div>
-    <div class="modal" id="modalReferrals">
-        <div class="modal-content">
-            <h2>Рефералы</h2>
-            <p>Рефералы — приглашайте друзей и получайте бонусы. За каждого приглашённого друга вы получаете 2000 токенов (неограниченно) и +1 дополнительный запрос в день (макс. +6). Ваш друг получает 1000 токенов за переход по вашей ссылке.</p>
-            <div class="modal-close"><button onclick="closeModal('referrals')">Закрыть</button></div>
-        </div>
-    </div>
+    <!-- Модалки -->
+    <div class="modal" id="modalTokens"><div class="modal-content"><h2>Токены</h2><p>10 000 бесплатно, по 2000 в день. Дальше покупка. Токены тратятся на запросы.</p><div class="modal-close"><button onclick="closeModal('tokens')">OK</button></div></div></div>
+    <div class="modal" id="modalRequests"><div class="modal-content"><h2>Запросы</h2><p>10 в день, обновляются каждые сутки. Можно купить или получить +6 от рефералов.</p><div class="modal-close"><button onclick="closeModal('requests')">OK</button></div></div></div>
+    <div class="modal" id="modalReferrals"><div class="modal-content"><h2>Рефералы</h2><p>За друга +2000 токенов и +1 запрос в день (макс. +6). Друг получает 1000 токенов.</p><div class="modal-close"><button onclick="closeModal('referrals')">OK</button></div></div></div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // Меню
+        const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const cost = document.getElementById('costPreview');
         const menuBtn = document.getElementById('menuBtn');
         const sidebar = document.getElementById('sidebar');
+
+        input.addEventListener('input', () => {
+            if (input.value.trim().length) {
+                let est = Math.ceil(input.value.length / 4) + 10;
+                cost.textContent = `≈ ${est} токенов`;
+            } else {
+                cost.textContent = '';
+            }
+        });
+
+        sendBtn.addEventListener('click', () => {
+            let text = input.value.trim();
+            if (!text) return;
+            fetch('https://ваш-сервер.com/api/webapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    initData: tg.initData,
+                    payload: { action: 'prompt', text }
+                })
+            }).then(() => tg.close()).catch(console.error);
+        });
+
+        window.sendPrompt = (text) => {
+            fetch('https://ваш-сервер.com/api/webapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData, payload: { action: 'prompt', text } })
+            }).then(() => {
+                sidebar.classList.remove('open');
+                menuBtn.classList.remove('active');
+                tg.close();
+            }).catch(console.error);
+        };
+
+        window.showInfo = (type) => {
+            document.getElementById(`modal${type.charAt(0).toUpperCase()+type.slice(1)}`).classList.add('show');
+            sidebar.classList.remove('open');
+            menuBtn.classList.remove('active');
+        };
+        window.closeModal = (type) => {
+            document.getElementById(`modal${type.charAt(0).toUpperCase()+type.slice(1)}`).classList.remove('show');
+        };
+        window.onclick = (e) => {
+            if (e.target.classList.contains('modal')) e.target.classList.remove('show');
+        };
+
         menuBtn.addEventListener('click', () => {
             menuBtn.classList.toggle('active');
             sidebar.classList.toggle('open');
         });
-
-        // Отправка действий в бота
-        function sendAction(action) {
-            let data = { action: action };
-            tg.sendData(JSON.stringify(data));
-        }
-
-        function sendPrompt(text) {
-            tg.sendData(JSON.stringify({ action: 'prompt', text: text }));
-            sidebar.classList.remove('open');
-            menuBtn.classList.remove('active');
-        }
-
-        function openBot() {
-            // Перенаправление на бота
-            window.location.href = 'https://t.me/@t7548123gyhfvu93h_BOT?start';
-        }
-
-        function openModelInfo() {
-            // Покажем информацию о модели (можно просто отправить сообщение боту)
-            sendPrompt('Расскажи о себе, какая ты модель?');
-        }
-
-        // Модальные окна
-        function showInfo(type) {
-            document.getElementById(`modal${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.add('show');
-            sidebar.classList.remove('open');
-            menuBtn.classList.remove('active');
-        }
-
-        function closeModal(type) {
-            document.getElementById(`modal${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.remove('show');
-        }
-
-        // Закрыть модалку по клику вне
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('show');
-            }
-        }
     </script>
 </body>
 </html>
